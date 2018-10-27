@@ -6,40 +6,50 @@ import numpy as np
 relation = ""
 attributes = {}
 
-
-def calculate_entropy(occurrences, total_elements):
+# Calculates the entropy
+# dataframe= rows that should be taken into accoutn
+# result name of the column name of the output (ex. play)
+def calculate_entropy(dataframe, result):
+    occurrences = count_occurrences(dataframe, result)
+    total_elements=dataframe.shape[0]
     result = 0
-    for element in occurrences:
+    for occurrence in occurrences:
+        element=occurrences[occurrence]
         result = result - (element / total_elements * math.log2(element / total_elements))
-    print("Entropy: {0}".format(result))
-
-def calculateEntropyTX(dataset, possibilities, possible_results):
-    result=0
-    for p in possibilities:
-        #filter rows where equal to first possibility (p)
-
-
-        #cout how many rows correspont to first possible result
-        #cout how many rows correspont to second possible result
-        possible_results_occurrences = countOccurrences(filtered_rows, possible_results)
-        #send this array to calculate entrpyy
-        entropy = calculateEntropyTX(possible_results_occurrences, len(filtered_rows))
-        #multiply that entropy by num(filtered_rows)/num(rows)
-        result = result+len(filtered_rows)/len(rows)*entropy
+    #print("Entropy: {0}".format(result))
     return result
 
 
+# Calculates the entropy of the given possible child
+# dataframe: full dataframe
+# headers without including the outputs
+# outputs name of the column with the possible outputs (ex: play)
+def calculate_entropy_TX(dataframe, p, outputs):
+    total_rows = dataframe.shape[0]
+    result=0
+    filtered_rows = dataframe[p].value_counts().to_dict()
+    for option in filtered_rows:
+        #filter rows where equal to first possibility (p) and call calculate_entropy
+        aux_entropy = calculate_entropy(dataframe[dataframe[p] == option], outputs)
+        aux_row_count = dataframe[dataframe[p] == option].shape[0]
+        result = result+(aux_row_count/total_rows*aux_entropy)
+    #print("Entropy {0}: {1}".format(option, result))
+    return result
 
+# Calculates the information gain
+#
+def calculate_information_gain(dataframe, p, outputs, current_entropy):
+    entropy_tx = calculate_entropy_TX(dataframe, p, outputs)
+    return current_entropy-entropy_tx
 
-def count_occurrences(dataframe, attribute):
+# Stores in a dictionary how many times each value of the result occurs in the given part of the dataframe
+# Output example {"yes":9, "no":4}
+def count_occurrences(dataframe, result):
+    possible_attributes = attributes[result]
     occurrences = []
-    for option in attribute:
-        total_count = 0
-        for d in dataframe:
-            total_count = total_count+d.count(option)
-        print("{0}: {1}".format(option, total_count))
-        occurrences.append(total_count)
-    return occurrences
+    total_count = dataframe[result].value_counts()
+    return total_count.to_dict()
+
 
 
 def format_header(header):
@@ -86,23 +96,22 @@ def main():
         elif "@data" in header:
             data_index = i
             break
-    print("attributes dictionary:")
-    print(attributes)
+    # print("attributes dictionary:")
+    # print(attributes)
     dataframe = format_data(lines[data_index + 1:input_len])
     print("\nfull dataframe:")
     print(dataframe)
 
-    # Counts the occurrences and calculates entropy of the dataframe
-    '''
-    for key in attributes.keys():
-        calculateEntropyTX(full_data, attributes[key], attributes[key]#del ultimo renglon)
-        print(key)
-        print(attributes[key])
-        occurrences = countOccurrences(full_data, attributes[key])
-        print(occurrences)
-        calculateEntropyT(occurrences, len(full_data))
 
-    '''
+    headers = list(dataframe.columns.values) # get the headers (ex. outlook temperature humidity  windy play)
+    result = headers[-1] # get the last value of the headers (ex. play)
+    current_entropy = calculate_entropy(dataframe, result)
+
+    #calculate Information gain of each possible child
+    for possibility in headers[:-1]:
+        information_gain = calculate_information_gain(dataframe, possibility, result, current_entropy)
+        print("Information gain: {0}".format(information_gain))
+
 
 
 if __name__ == "__main__":
