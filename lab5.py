@@ -1,15 +1,32 @@
 import fileinput
 import math
+import pandas as pd
 relation = ""
 attributes = {}
 full_data=[]
 
 
-def calculateEntropy(occurrences, total_elements):
+def calculateEntropyT(occurrences, total_elements):
     result=0
     for element in occurrences:
          result=result-(element/total_elements*math.log2(element/total_elements))
     print("Entropy: {0}".format(result))
+
+def calculateEntropyTX(dataset, possibilities, possible_results):
+    result=0
+    for p in possibilities:
+        #filter rows where equal to first possibility (p)
+
+
+        #cout how many rows correspont to first possible result
+        #cout how many rows correspont to second possible result
+        possible_results_occurrences = countOccurrences(filtered_rows, possible_results)
+        #send this array to calculate entrpyy
+        entropy = calculateEntropyTX(possible_results_occurrences, len(filtered_rows))
+        #multiply that entropy by num(filtered_rows)/num(rows)
+        result = result+len(filtered_rows)/len(rows)*entropy
+    return result
+
 
 def countOccurrences(dataset, attribute):
     occurrences = []
@@ -19,7 +36,6 @@ def countOccurrences(dataset, attribute):
             total_count=total_count+d.count(option)
         print("{0}: {1}".format(option, total_count))
         occurrences.append(total_count)
-    print(occurrences)
     return occurrences
 
 
@@ -63,8 +79,12 @@ def main():
 
     # Counts the occurrences and calculates entropy of the dataset
     for key in attributes.keys():
+        calculateEntropyTX(full_data, attributes[key], attributes[key]#del ultimo renglon)
+        print(key)
+        print(attributes[key])
         occurrences = countOccurrences(full_data, attributes[key])
-        calculateEntropy(occurrences, len(full_data))
+        print(occurrences)
+        calculateEntropyT(occurrences, len(full_data))
 
 if __name__ == "__main__":
     main()
