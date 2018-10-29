@@ -77,11 +77,15 @@ def same_y_values(dataframe):
     return y_values == 1
 
 
-def generate_tree_model(dataframe):
-    print("\n\n generate_tree_model() function call: \n data: ")
-    print(dataframe)
+def generate_tree_model(dataframe, depth):
+    # print("\n\n generate_tree_model() function call: \n data: ")
+    # print(dataframe)
+    tabulation = "  " * depth
     if same_y_values(dataframe):
-        print("all y values are the same, entropy is 0")
+        # print("all y values are the same, entropy is 0")
+        y_column_name = list(attributes.keys())[-1]
+        y_value = dataframe[y_column_name].iloc[0]
+        print(tabulation + "ANSWER: {0}".format(y_value))
         return
     x_headers = list(dataframe.columns.values)[:-1]  # get x headers (ex. outlook temperature humidity  windy play)
     current_entropy = calculate_entropy(dataframe)
@@ -95,10 +99,11 @@ def generate_tree_model(dataframe):
         if information_gain > max_information_gain:
             max_information_gain = information_gain
             max_x_col = x_column
-    print("split on column: {0}, information gain: {1}".format(max_x_col, max_information_gain))
+    # print("split on column: {0}, information gain: {1}".format(max_x_col, max_information_gain))
     # for each attribute value, split dataframe:
     for value in attributes[max_x_col]:
-        generate_tree_model(dataframe[dataframe[max_x_col] == value])
+        print(tabulation + "{0}: {1}".format(max_x_col, value))
+        generate_tree_model(dataframe[dataframe[max_x_col] == value], depth + 1)
     return
 
 
@@ -120,13 +125,13 @@ def main():
         elif "@data" in header:
             data_index = i
             break
-    print("attributes dictionary:")
-    print(attributes)
+    # print("attributes dictionary:")
+    # print(attributes)
     dataframe = format_data(lines[data_index + 1:input_len])
-    print("\nfull dataframe:")
-    print(dataframe)
+    # print("\nfull dataframe:")
+    # print(dataframe)
 
-    generate_tree_model(dataframe)
+    generate_tree_model(dataframe, 0)
 
 
 if __name__ == "__main__":
